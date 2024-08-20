@@ -52,14 +52,6 @@ def extract_arg_names(function):
     return argspec.args
 
 
-def set_reproducible_experiment(seed, detect_anomaly=False, device='cpu'):
-    torch.use_deterministic_algorithms(mode=True)
-    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
-    if detect_anomaly:
-        torch.autograd.set_detect_anomaly(True)
-    set_all_seeds(seed=seed, device=device)
-
-
 def current_datetime():
     return datetime.now().strftime("%Y-%m-%d_%Hh%Mmin%S")
 

@@ -1,3 +1,5 @@
+from typing import List
+
 import random
 import string
 import time
@@ -66,7 +68,7 @@ def to_sweep_format(parameters:dict):
             assert len(param) > 0
             if len(param) == 1:
                 sweep_parameters[key] = {"value":param[0]}
-            else: 
+            else:
                 sweep_parameters[key] = {"values":param}
         else:
             sweep_parameters[key] = {"value":param}
@@ -87,8 +89,23 @@ def update_wandb_sync(run:Run, SYNC_WANDB_PATH:str):
         script_file.write("\n" + new_instruction)
 
 
-def create_sweep(parameters:dict, method:str):
-    sweep_config = dict(method=method, metric={'name':'test/rew_mean','goal':'maximize'})
+def create_sweep(parameters:dict, method:str, names_dict:dict, metric_goal:dict):
+    sweep_config = dict(method=method, metric=metric_goal)
     sweep_config['parameters']=parameters
-    sweep_id = wandb.sweep(sweep_config, entity='llm4planning2', project="addition")
+    sweep_id = wandb.sweep(sweep_config, entity=names_dict['entity'], project=names_dict['project'])
     return sweep_id
+
+
+def maybe_define_wandb_metrics(loss_metrics:List[str], score_metrics:List[str], stages:List[str], use_wandb:bool):
+    if use_wandb:
+        import wandb
+        for loss_metric in loss_metrics:
+            for stage in stages:
+                wandb.define_metric(f'{stage}/{loss_metric}', summary="min")
+        for score_metric in score_metrics:
+            for stage in stages:
+                wandb.define_metric(f'{stage}/{score_metric}', summary="max")
+
+
+# entity='llm4planning2', project="addition"
+# metric = {'name':'test/rew_mean','goal':'maximize'}
