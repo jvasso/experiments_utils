@@ -9,3 +9,6 @@ To install the latest version, run the following:
 pip install git+https://github.com/jvasso/experiments_utils
 ```
 
+## Basic usage
+
+See ```example.py```
