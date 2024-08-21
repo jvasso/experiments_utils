@@ -1,7 +1,7 @@
 import wandb
 
-from src import retrieve_arguments, set_experiment_mode, preprocess_training, maybe_define_wandb_metrics
-from src import generate_slurm, run_in_cluster_mode, run_in_standard_mode
+from src.experiments_utils import retrieve_arguments, set_experiment_mode, preprocess_training, maybe_define_wandb_metrics
+from src.experiments_utils import generate_slurm, run_in_cluster_mode, run_in_standard_mode
 
 from .path_manager import PathManager
 from .custom_slurm_generator import CustomSlurmGenerator

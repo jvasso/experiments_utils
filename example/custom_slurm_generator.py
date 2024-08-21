@@ -1,4 +1,4 @@
-from src import SlurmGenerator
+from src.experiments_utils import SlurmGenerator
 
 
 class CustomSlurmGenerator(SlurmGenerator):
