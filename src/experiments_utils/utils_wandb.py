@@ -7,6 +7,8 @@ from datetime import datetime
 
 import pytz
 
+from .utils import add_prefix
+
 import wandb
 from wandb.sdk.wandb_run import Run
 
@@ -101,10 +103,11 @@ def maybe_define_wandb_metrics(loss_metrics:List[str], score_metrics:List[str], 
         import wandb
         for loss_metric in loss_metrics:
             for stage in stages:
-                wandb.define_metric(f'{stage}/{loss_metric}', summary="min")
+                wandb.define_metric(add_prefix(metric=loss_metric, predix=stage), summary="min")
         for score_metric in score_metrics:
             for stage in stages:
-                wandb.define_metric(f'{stage}/{score_metric}', summary="max")
+                wandb.define_metric(add_prefix(metric=score_metric, predix=stage), summary="max")
+
 
 
 # entity='llm4planning2', project="addition"
