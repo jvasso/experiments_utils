@@ -265,3 +265,7 @@ def set_device(config, device):
         else:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     return device
+
+
+def add_prefix(metric:str, prefix:str):
+    return f'{prefix}/{metric}'
