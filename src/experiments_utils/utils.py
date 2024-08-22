@@ -12,6 +12,10 @@ import random
 import numpy as np
 import torch
 
+if torch.cuda.is_available():
+    import GPUtil
+    from GPUtil import GPU
+
 import itertools
 
 import inspect
@@ -269,3 +273,9 @@ def set_device(config, device):
 
 def add_prefix(metric:str, prefix:str):
     return f'{prefix}/{metric}'
+
+
+def get_gpu_usage(verbose=True):
+    gpu:GPU = GPUtil.getGPUs()[0]
+    if verbose: print(f"\nGPU RAM Used: {gpu.memoryUsed}MB (total: {gpu.memoryTotal}MB)")
+    return gpu.memoryUsed
