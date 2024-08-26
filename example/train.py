@@ -7,7 +7,7 @@ from .path_manager import PathManager
 from .custom_slurm_generator import CustomSlurmGenerator
 
 
-X_AXIS = "train_step"
+STEP_METRIC = "train_step"
 
 LOSS_METRICS  = ['loss']
 SCORE_METRICS = ['rew']
@@ -21,7 +21,7 @@ def sweep_trainer(config_dict=None):
 
 def train_func(config, use_wandb, run=None):
     device = preprocess_training(config=config, seed=config.seed, device=config.device)
-    maybe_define_wandb_metrics(loss_metrics=LOSS_METRICS, score_metrics=SCORE_METRICS, stages=STAGES, use_wandb=use_wandb, custom_x_axis=X_AXIS)
+    maybe_define_wandb_metrics(loss_metrics=LOSS_METRICS, score_metrics=SCORE_METRICS, stages=STAGES, use_wandb=use_wandb, custom_step_metric=STEP_METRIC)
     
     print('training done')
     

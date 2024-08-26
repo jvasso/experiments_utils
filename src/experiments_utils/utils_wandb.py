@@ -98,15 +98,15 @@ def create_sweep(parameters:dict, method:str, names_dict:dict, metric_goal:dict)
     return sweep_id
 
 
-def maybe_define_wandb_metrics(loss_metrics:List[str], score_metrics:List[str], stages:List[str], use_wandb:bool, custom_x_axis:str=None):
+def maybe_define_wandb_metrics(loss_metrics:List[str], score_metrics:List[str], stages:List[str], use_wandb:bool, custom_step_metric:str=None):
     if use_wandb:
         import wandb
 
         # x-axis
-        if custom_x_axis is not None:
-            assert isinstance(custom_x_axis, str)
-            wandb.define_metric(custom_x_axis)
-            step_metric = custom_x_axis
+        if custom_step_metric is not None:
+            assert isinstance(custom_step_metric, str)
+            wandb.define_metric(custom_step_metric)
+            step_metric = custom_step_metric
         else:
             step_metric = None
 
