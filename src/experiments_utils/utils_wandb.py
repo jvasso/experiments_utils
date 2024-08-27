@@ -113,10 +113,10 @@ def maybe_define_wandb_metrics(loss_metrics:List[str], score_metrics:List[str], 
         # loss and score metrics
         for loss_metric in loss_metrics:
             for stage in stages:
-                wandb.define_metric(add_prefix(metric=loss_metric, predix=stage), step_metric=step_metric, goal="minimize")
+                wandb.define_metric(add_prefix(metric=loss_metric, prefix=stage), step_metric=step_metric, goal="minimize")
         for score_metric in score_metrics:
             for stage in stages:
-                wandb.define_metric(add_prefix(metric=score_metric, predix=stage), step_metric=step_metric, goal="maximize")
+                wandb.define_metric(add_prefix(metric=score_metric, prefix=stage), step_metric=step_metric, goal="maximize")
         
         
 
