@@ -65,7 +65,7 @@ if __name__=='__main__':
 
     arguments = retrieve_arguments()
     mode, names_dict, cluster_name = set_experiment_mode(arguments=arguments)
-    wandb_names, metric_goal = set_wandb_params(use_wandb=use_sweep)
+    wandb_names, metric_goal = set_wandb_params(use_wandb=use_wandb)
     names_dict = {**names_dict, **wandb_names} if use_wandb else None
 
     if mode=="generate_slurm":

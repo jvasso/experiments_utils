@@ -7,7 +7,7 @@ class PathManager:
     SLURM        = os.path.join(PROJECT_PATH, 'slurm')
     CONFIGS      = os.path.join(PROJECT_PATH, "configs")
     LOGFILES     = os.path.join(PROJECT_PATH, "logfiles")
-
+    
     SYNC_WANDB = os.path.join(CONFIGS, "sync_wandb.sh")
     
     def __init__(self):

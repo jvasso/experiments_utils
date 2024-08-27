@@ -47,7 +47,8 @@ def single_run(config, train_func:Callable, is_offline:bool, use_wandb:bool, SYN
         os.environ["WANDB__SERVICE_WAIT"] = "300"
         mode = "offline" if is_offline else "online"
         wandb_params = dict(entity=names_dict['entity'], project=names_dict['project'], group=names_dict['group'])
-        run = wandb.init(config=config, sync_tensorboard=False, mode=mode, name=names_dict['run'], **wandb_params)
+        run_name = names_dict['run'] if 'run' in names_dict.keys() else None
+        run = wandb.init(config=config, sync_tensorboard=False, mode=mode, name=run_name, **wandb_params)
         utils_wandb.update_wandb_sync(run=run, SYNC_WANDB_PATH=SYNC_WANDB_PATH)
     else:
         run = None
@@ -85,7 +86,7 @@ def generate_slurm(SLURM_PATH:str, cluster_name:str, SlurmGenerator_cls:Type[Slu
 
 def run_in_cluster_mode(train_func:Callable, CONFIGS_PATH:str, SYNC_WANDB_PATH:str, names_dict:str):
     print('\nRun in cluster mode!')
-    config_file_path = os.path.join(CONFIGS_PATH, names_dict["config_name"])
+    config_file_path = os.path.join(CONFIGS_PATH, names_dict["config"])
     single_config = utils.load_yaml_file(file_path=config_file_path)
     run:Run = single_run(config=single_config, train_func=train_func, is_offline=True, use_wandb=True, SYNC_WANDB_PATH=SYNC_WANDB_PATH, names_dict=names_dict)
     run.finish()
