@@ -13,43 +13,75 @@ from wandb.sdk.wandb_run import Run
 class SlurmGenerator:
 
     SEP = "\n"
-    
     QOS_DEV = "qos_gpu-dev"
     QOS_T3  = "qos_gpu-t3"
     QOS_T4  = "qos_gpu-t4"
-
-    CLUSTER_JEAN_ZAY = "jean_zay"
-    CLUSTER_RUCHE    = "ruche"
+    CLUSTER_JEAN_ZAY = "jz"
+    CLUSTER_RUCHE    = "r"
     
-    def __init__(self, cluster_name:str, configs_list:List[dict], run_name:str, group_name:str,
-                 SLURM_PATH:str, CONFIGS_PATH:str, LOGFILES_PATH:str, SYNC_WANDB_PATH:str,
-                 time:str, qos:str=None, constraint:str=None, partition:str=None,
-                 slurm_filename:str="rl_train"):
+    # mandatory attributes
+    PROJECT_PATH    = None
+    CONFIGS_PATH    = None
+    SLURM_PATH      = None
+    LOGFILES_PATH   = None
+    SYNC_WANDB_PATH = None
+    TRAIN_FILES_FOLDER_PATH = os.path.join('.', 'src')
+    CONDA_ENV_NAME          = None
+    EMAIL                   = None
+    
+    # mandatory attributes for RUCHE
+    ANACONDA_MODULE_RUCHE = 'anaconda3/2022.10/gcc-11.2.0'
+    CUDA_MODULE_RUCHE     = 'cuda/12.2.1/gcc-11.2.0'
+    CONDA_ENV_PATH_RUCHE  = '~/.conda/envs/llm4planning/bin/python'
+    REPO_PATH_RUCHE       = None
+
+    # mandatory attributes for JEAN-ZAY
+    ANACONDA_MODULE_JEAN_ZAY = 'anaconda-py3/2023.09'
+
+    
+    def __init__(self,
+                 configs_list:List[dict], filename:str, run_name:str, group_name:str,
+                 cluster_name:str, time:str, cpu_per_task:int=None, qos:str=None, constraint:str=None, partition:str=None):
         self.cluster      = cluster_name
+        self.filename     = filename
         self.configs_list = configs_list
         self.run_name     = run_name
         self.group_name   = group_name
         self.time         = time
+        self.cpu_per_task = cpu_per_task
         self.qos          = qos
         self.constraint   = constraint
         self.partition    = partition
 
-        self.SLURM_PATH      = SLURM_PATH
-        self.CONFIGS_PATH    = CONFIGS_PATH
-        self.LOGFILES_PATH   = LOGFILES_PATH
-        self.SYNC_WANDB_PATH = SYNC_WANDB_PATH
-
-        self.slurm_filename = f'{slurm_filename}_{self.cluster}.sh'
+        self.slurm_filename = f'{self.filename}_{self.cluster}.sh'
         
         self.num_configs = len(self.configs_list)
 
+        self.check_class_attr()
+
         if self.cluster==self.CLUSTER_JEAN_ZAY:
             self.preprocess_jean_zay()
+            self.check_jean_zay_attr()
         elif self.cluster==self.CLUSTER_RUCHE:
             self.preprocess_ruche()
+            self.check_ruch_attr()
         else:
-            raise ValueError(f'Cluster name {self.cluster} not supported.')
+            raise ValueError(f'Cluster name "{self.cluster}" not supported.')
+    
 
+    def check_class_attr(self):
+        for class_attr in [self.SLURM_PATH, self.CONFIGS_PATH, self.LOGFILES_PATH, self.SYNC_WANDB_PATH, self.PROJECT_PATH,
+                           self.TRAIN_FILES_FOLDER_PATH, self.CONDA_ENV_NAME]:
+            assert class_attr is not None
+    
+    def check_ruch_attr(self):
+        for class_attr in [self.ANACONDA_MODULE_RUCHE, self.CUDA_MODULE_RUCHE, self.CONDA_ENV_PATH_RUCHE, self.REPO_PATH_RUCHE]:
+            assert class_attr is not None
+
+    def check_jean_zay_attr(self):
+        for class_attr in [self.ANACONDA_MODULE_JEAN_ZAY]:
+            assert class_attr is not None
+    
 
     def preprocess_jean_zay(self):
         if self.num_configs > 10:
@@ -102,25 +134,27 @@ class SlurmGenerator:
         
         text += "#SBATCH --gres=gpu:1" + self.SEP
         if self.cluster==self.CLUSTER_JEAN_ZAY:
-            text += "#SBATCH --cpus-per-task=4" + self.SEP
-            text += "#SBATCH --hint=nomultithread" + self.SEP
+            assert self.cpu_per_task is not None
+            text += f"#SBATCH --cpus-per-task={self.cpu_per_task}" + self.SEP
+            text +=  "#SBATCH --hint=nomultithread" + self.SEP
         text += self.SEP
 
         if self.cluster==self.CLUSTER_RUCHE:
-            text += "#SBATCH --mail-user=jeanvasso@gmail.com" + self.SEP
-            text += "#SBATCH --mail-type=ALL" + self.SEP
-            text += self.SEP
+            if self.EMAIL is not None:
+                text += f"#SBATCH --mail-user={self.EMAIL}" + self.SEP
+                text +=  "#SBATCH --mail-type=ALL" + self.SEP
+                text += self.SEP
 
         text += "module purge" + self.SEP
 
         if self.cluster==self.CLUSTER_JEAN_ZAY:
-            text += "module load anaconda-py3/2023.09" + self.SEP
-            text += "conda activate llm4planning" + self.SEP
+            text += f"module load {self.ANACONDA_MODULE_JEAN_ZAY}" + self.SEP
+            text += f"conda activate {self.CONDA_ENV_NAME}" + self.SEP
         elif self.cluster==self.CLUSTER_RUCHE:
-            text += "module load anaconda3/2022.10/gcc-11.2.0" + self.SEP
-            text += "module load cuda/12.2.1/gcc-11.2.0 " + self.SEP
-            text += "source activate llm4planning" + self.SEP
-            text += "cd /gpfs/workdir/vassoyanj/repos/llm-planning" + self.SEP
+            text += f"module load {self.ANACONDA_MODULE_RUCHE}" + self.SEP
+            text += f"module load {self.CUDA_MODULE_RUCHE} " + self.SEP
+            text += f"source activate {self.CONDA_ENV_NAME}" + self.SEP
+            text += f"cd {self.REPO_PATH_RUCHE}" + self.SEP
         
         text += "export WANDB__SERVICE_WAIT=300" + self.SEP
         text += "export WANDB_MODE=offline" + self.SEP
@@ -134,11 +168,17 @@ class SlurmGenerator:
         arg_run_name    = run_name
         arg_group_name  = f"{self.group_name}"
         arguments = arg_config_name + " " + arg_run_name + " " + arg_group_name
+
+        full_filepath     = os.path.join(self.TRAIN_FILES_FOLDER_PATH, self.filename)
+        assert os.path.isfile(full_filepath)
+        relative_filepath = os.path.relpath(full_filepath, self.PROJECT_PATH)
+        dot_path = relative_filepath.replace(os.sep, '.')
         
         if self.cluster==self.CLUSTER_JEAN_ZAY:
-            text += "srun python -m src.rl_train " + arguments
+            text += f"srun python -m {dot_path} " + arguments
         elif self.cluster==self.CLUSTER_RUCHE:
-            text += "~/.conda/envs/llm4planning/bin/python -m src.rl_train " + arguments
+            python_path = os.path.join(self.CONDA_ENV_PATH_RUCHE, 'bin', 'python')
+            text += f"{python_path} -m {dot_path} " + arguments
         else:
             raise ValueError(f'Cluster {self.cluster} not supported.')
         

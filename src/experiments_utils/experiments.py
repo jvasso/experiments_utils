@@ -67,18 +67,17 @@ def preprocess_training(config, seed, device):
 ####################################################################################################################################
 
 
-def generate_slurm(SLURM_PATH:str, cluster_name:str, SlurmGenerator_cls:Type[SlurmGenerator]):
+def generate_slurm(cluster_name:str, filename:str, SlurmGenerator_cls:Type[SlurmGenerator]):
     print('\nGenerate slurm!')
     group_name = utils_wandb.generate_group_name(format='format1', cluster_name=cluster_name)
     run_name   = group_name
-    slurm_kwargs = utils.load_yaml_file(os.path.join(SLURM_PATH, f'config_{cluster_name}'))
+    slurm_kwargs = utils.load_yaml_file(os.path.join(SlurmGenerator_cls.SLURM_PATH, f'config_{filename}_{cluster_name}'))
     
     config = SlurmGenerator_cls.adjust_config_to_constraints(config, slurm_kwargs, cluster_name)
     configs_list = utils.dict_of_lists2list_of_dicts(config)
     slurm_generator = SlurmGenerator_cls(configs_list=configs_list,
-                                        run_name=run_name,
-                                        group_name=group_name,
-                                        **slurm_kwargs)
+                                         filename=filename, run_name=run_name, group_name=group_name,
+                                         **slurm_kwargs)
     slurm_generator.generate_config_files(verbose=1)
     slurm_generator.generate_slurm_file(verbose=1)
     slurm_generator.init_log_files(verbose=1)

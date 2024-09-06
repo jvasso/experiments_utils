@@ -1,3 +1,5 @@
+import os
+
 import wandb
 
 from src.experiments_utils import retrieve_arguments, set_experiment_mode, preprocess_training, maybe_define_wandb_metrics
@@ -69,7 +71,8 @@ if __name__=='__main__':
     names_dict = {**names_dict, **wandb_names} if use_wandb else None
 
     if mode=="generate_slurm":
-        generate_slurm(SLURM_PATH=PathManager.SLURM, cluster_name=cluster_name, SlurmGenerator_cls=CustomSlurmGenerator)
+        filename = os.path.basename(__file__)
+        generate_slurm(cluster_name=cluster_name, filename=filename, SlurmGenerator_cls=CustomSlurmGenerator)
     elif mode=="cluster":
         run_in_cluster_mode(train_func=train_func, CONFIGS_PATH=PathManager.CONFIGS, SYNC_WANDB_PATH=PathManager.SYNC_WANDB, names_dict=names_dict)
     elif mode=="standard":
