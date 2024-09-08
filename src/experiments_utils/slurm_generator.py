@@ -92,12 +92,13 @@ class SlurmGenerator:
     
 
     def preprocess_ruche(self):
-        if self.partition in {'gpu','gpu_test'}:
-            assert self.num_configs <= 8
+        # max num configs = num gpus available per user * 2 or 4 (depending on gpu size)
+        if self.partition in {'gpu','gpu_test'}: # 8*2
+            assert self.num_configs <= 16
         elif self.partition=='gpua100':
-            assert self.num_configs <= 4
+            assert self.num_configs <= 16 # 4*4
         elif self.partition=='gpup100':
-            assert self.num_configs <= 2
+            assert self.num_configs <= 4 # 2*2
 
         print(f"{self.num_configs} configs to run.")
             
@@ -169,7 +170,7 @@ class SlurmGenerator:
         arg_run_name    = run_name
         arg_group_name  = f"{self.group_name}"
         arguments = arg_config_name + " " + arg_run_name + " " + arg_group_name
-        
+
         filename_with_ext = self.filename + ".py" if not ".py" in self.filename else self.filename
         full_filepath = os.path.join(self.TRAIN_FILES_FOLDER_PATH, filename_with_ext)
         assert os.path.isfile(full_filepath)
