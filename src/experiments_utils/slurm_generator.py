@@ -53,6 +53,7 @@ class SlurmGenerator:
         self.constraint   = constraint
         self.partition    = partition
 
+        assert not "." in self.filename, f'Please provide filename "{self.filename}" without extension.'
         self.slurm_filename = f'{self.filename}_{self.cluster}.sh'
         
         self.num_configs = len(self.configs_list)
@@ -168,8 +169,9 @@ class SlurmGenerator:
         arg_run_name    = run_name
         arg_group_name  = f"{self.group_name}"
         arguments = arg_config_name + " " + arg_run_name + " " + arg_group_name
-
-        full_filepath     = os.path.join(self.TRAIN_FILES_FOLDER_PATH, self.filename)
+        
+        filename_with_ext = self.filename + ".py" if not ".py" in self.filename else self.filename
+        full_filepath = os.path.join(self.TRAIN_FILES_FOLDER_PATH, filename_with_ext)
         assert os.path.isfile(full_filepath)
         relative_filepath = os.path.relpath(full_filepath, self.PROJECT_PATH)
         dot_path = relative_filepath.replace(os.sep, '.')
