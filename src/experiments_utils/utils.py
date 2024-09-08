@@ -268,6 +268,7 @@ def set_device(config, device):
             device = config.device
         else:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f'\nUsing device {device}\n')
     return device
 
 
