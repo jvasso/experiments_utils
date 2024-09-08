@@ -30,9 +30,9 @@ class SlurmGenerator:
     EMAIL                   = None
     
     # mandatory attributes for RUCHE
-    ANACONDA_MODULE_RUCHE = 'anaconda3/2022.10/gcc-11.2.0'
-    CUDA_MODULE_RUCHE     = 'cuda/12.2.1/gcc-11.2.0'
-    CONDA_ENV_PATH_RUCHE  = '~/.conda/envs/llm4planning/bin/python'
+    ANACONDA_MODULE_RUCHE = None
+    CUDA_MODULE_RUCHE     = None
+    CONDA_ENV_PATH_RUCHE  = None
     REPO_PATH_RUCHE       = None
 
     # mandatory attributes for JEAN-ZAY

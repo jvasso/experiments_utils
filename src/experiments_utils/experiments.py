@@ -67,7 +67,7 @@ def preprocess_training(config, seed, device):
 ####################################################################################################################################
 
 
-def generate_slurm(cluster_name:str, filename:str, SlurmGenerator_cls:Type[SlurmGenerator]):
+def generate_slurm(config, cluster_name:str, filename:str, SlurmGenerator_cls:Type[SlurmGenerator]):
     print('\nGenerate slurm!')
     group_name = utils_wandb.generate_group_name(format='format1', cluster_name=cluster_name)
     run_name   = group_name
