@@ -92,7 +92,9 @@ def update_wandb_sync(run:Run, SYNC_WANDB_PATH:str):
 
 
 def create_sweep(parameters:dict, method:str, names_dict:dict, metric_goal:dict):
-    sweep_config = dict(method=method, metric=metric_goal)
+    sweep_config = dict(method=method)
+    if (metric_goal is not None) and (metric_goal != {}):
+        sweep_config['metric'] = metric_goal
     sweep_config['parameters']=parameters
     sweep_id = wandb.sweep(sweep_config, entity=names_dict['entity'], project=names_dict['project'])
     return sweep_id
