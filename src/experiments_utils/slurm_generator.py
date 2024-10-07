@@ -120,7 +120,8 @@ class SlurmGenerator:
         text += self.SEP
         
         if self.cluster==self.CLUSTER_JEAN_ZAY:
-            text += f"#SBATCH --qos={self.qos}" + self.SEP
+            if not self.constraint=='a100':
+                text += f"#SBATCH --qos={self.qos}" + self.SEP
             text += f"#SBATCH --constraint={self.constraint}" + self.SEP
         elif self.cluster==self.CLUSTER_RUCHE:
             text += f"#SBATCH --partition={self.partition}" + self.SEP
