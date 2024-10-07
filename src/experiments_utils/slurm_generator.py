@@ -150,6 +150,8 @@ class SlurmGenerator:
         text += "module purge" + self.SEP
 
         if self.cluster==self.CLUSTER_JEAN_ZAY:
+            if self.constraint=='a100':
+                text += "module load arch/a100" + self.SEP
             text += f"module load {self.ANACONDA_MODULE_JEAN_ZAY}" + self.SEP
             text += f"conda activate {self.CONDA_ENV_NAME}" + self.SEP
         elif self.cluster==self.CLUSTER_RUCHE:
