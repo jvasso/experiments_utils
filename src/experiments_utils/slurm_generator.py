@@ -95,12 +95,12 @@ class SlurmGenerator:
 
     def preprocess_ruche(self):
         # max num configs = num gpus available per user * 2 or 4 (depending on gpu size)
-        if self.partition in {'gpu','gpu_test'}: # 8*2
-            assert self.num_configs <= 16
-        elif self.partition=='gpua100':
-            assert self.num_configs <= 16 # 4*4
-        elif self.partition=='gpup100':
-            assert self.num_configs <= 4 # 2*2
+        # if self.partition in {'gpu','gpu_test'}: # 8*2
+        #     assert self.num_configs <= 16
+        # elif self.partition=='gpua100':
+        #     assert self.num_configs <= 16 # 4*4
+        # elif self.partition=='gpup100':
+        #     assert self.num_configs <= 4 # 2*2
 
         print(f"{self.num_configs} configs to run.")
             
