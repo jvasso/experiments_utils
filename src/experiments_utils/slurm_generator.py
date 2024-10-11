@@ -14,7 +14,9 @@ class SlurmGenerator:
 
     SEP = "\n"
     QOS_DEV = "qos_gpu-dev"
+    QOS_DEV_A100 = "qos_gpu_a100-dev"
     QOS_T3  = "qos_gpu-t3"
+    QOS_T3_A100 = "qos_gpu_a100-t3"
     QOS_T4  = "qos_gpu-t4"
     CLUSTER_JEAN_ZAY = "jz"
     CLUSTER_RUCHE    = "r"
@@ -253,7 +255,7 @@ class SlurmGenerator:
         if self.cluster==self.CLUSTER_JEAN_ZAY:
             if self.qos in {self.QOS_DEV, self.QOS_T3, self.QOS_T4} and self.constraint == "v100-32g":
                 run_line = f"sbatch -A sur@v100 slurm/{self.slurm_filename}"
-            elif self.qos in {self.QOS_DEV, self.QOS_T3, self.QOS_T4} and self.constraint == "a100":
+            elif self.qos in {self.QOS_DEV_A100, self.QOS_T3_A100} and self.constraint == "a100":
                 run_line = f"sbatch -A sur@a100 slurm/{self.slurm_filename}"
             else:
                 raise NotImplementedError()
