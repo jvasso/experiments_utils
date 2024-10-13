@@ -73,9 +73,11 @@ def generate_slurm(config, filename:str, cluster_name:str, SlurmGenerator_cls:Ty
     run_name   = group_name
     slurm_kwargs = utils.load_yaml_file(os.path.join(SlurmGenerator_cls.SLURM_PATH, f'config_{filename}_{cluster_name}'))
     
-    config = SlurmGenerator_cls.adjust_config_to_constraints(config, slurm_kwargs, cluster_name)
     configs_list = utils.dict_of_lists2list_of_dicts(config)
-    slurm_generator = SlurmGenerator_cls(configs_list=configs_list,
+    configs_list_adjusted = [SlurmGenerator_cls.adjust_config_to_constraints(config_element, slurm_kwargs, cluster_name)
+                             for config_element in configs_list]
+   
+    slurm_generator = SlurmGenerator_cls(configs_list=configs_list_adjusted,
                                          filename=filename, run_name=run_name, group_name=group_name,
                                          **slurm_kwargs)
     slurm_generator.generate_config_files(verbose=1)
