@@ -78,16 +78,16 @@ def to_sweep_format(parameters:dict):
 
 
 
-def initialize_sync_wandb_file(SYNC_WANDB_PATH:str):
+def initialize_sync_wandb_file(sync_wandb_filepath:str):
     text = "#!/bin/bash\n"
-    with open(SYNC_WANDB_PATH, 'w') as script_file:
+    with open(sync_wandb_filepath, 'w') as script_file:
         script_file.write(text)
 
 
-def update_wandb_sync(run:Run, SYNC_WANDB_PATH:str):
+def update_wandb_sync(run:Run, sync_wandb_filepath:str):
     dir_name = run.dir.split('/files')[0]
     new_instruction = f"wandb sync {dir_name}"
-    with open(SYNC_WANDB_PATH, 'a') as script_file:
+    with open(sync_wandb_filepath, 'a') as script_file:
         script_file.write("\n" + new_instruction)
 
 

@@ -37,7 +37,7 @@ def set_experiment_mode(arguments):
     return mode, names_dict, cluster_name
 
 
-def single_run(config, train_func:Callable, is_offline:bool, use_wandb:bool, SYNC_WANDB_PATH:str, names_dict:dict) -> Run:
+def single_run(config, train_func:Callable, is_offline:bool, use_wandb:bool, sync_wandb_filepath:str, names_dict:dict) -> Run:
     """
     WARNING: train_func must call preprocess_training at the beginning.
     """
@@ -50,7 +50,7 @@ def single_run(config, train_func:Callable, is_offline:bool, use_wandb:bool, SYN
         run_name = names_dict['run'] if 'run' in names_dict.keys() else None
         run = wandb.init(config=config, sync_tensorboard=False, mode=mode, name=run_name, **wandb_params)
         if is_offline:
-            utils_wandb.update_wandb_sync(run=run, SYNC_WANDB_PATH=SYNC_WANDB_PATH)
+            utils_wandb.update_wandb_sync(run=run, sync_wandb_filepath=sync_wandb_filepath)
     else:
         run = None
     config_object = SimpleNamespace(**config)
@@ -67,7 +67,7 @@ def preprocess_training(config, seed, device):
 ####################################################################################################################################
 
 
-def generate_slurm(config, cluster_name:str, filename:str, SlurmGenerator_cls:Type[SlurmGenerator]):
+def generate_slurm(config, filename:str, cluster_name:str, SlurmGenerator_cls:Type[SlurmGenerator]):
     print('\nGenerate slurm!')
     group_name = utils_wandb.generate_group_name(format='format1', cluster_name=cluster_name)
     run_name   = group_name
@@ -84,19 +84,21 @@ def generate_slurm(config, cluster_name:str, filename:str, SlurmGenerator_cls:Ty
     slurm_generator.print_instructions()
 
 
-def run_in_cluster_mode(train_func:Callable, CONFIGS_PATH:str, SYNC_WANDB_PATH:str, names_dict:str):
+def run_in_cluster_mode(train_func:Callable, filename:str, CONFIGS_PATH:str, names_dict:str, SlurmGenerator_cls:Type[SlurmGenerator]=SlurmGenerator):
     print('\nRun in cluster mode!')
     config_file_path = os.path.join(CONFIGS_PATH, names_dict["config"])
     single_config = utils.load_yaml_file(file_path=config_file_path)
+    sync_wandb_filepath = SlurmGenerator_cls.build_sync_wandb_filepath(script_filename=filename, config=single_config)
     run:Run = single_run(config=single_config, train_func=train_func, is_offline=True, use_wandb=True,
-                         SYNC_WANDB_PATH=SYNC_WANDB_PATH, names_dict=names_dict)
+                         sync_wandb_filepath=sync_wandb_filepath, names_dict=names_dict)
     run.finish()
 
 
-def run_in_standard_mode(config, train_func:Callable,
+def run_in_standard_mode(config, train_func:Callable, filename:str,
                          quick_test:bool, use_sweep:bool, use_wandb:bool, is_offline:bool,
-                         SYNC_WANDB_PATH:str, names_dict:dict, metric_goal:dict,
-                         sweep_trainer:Callable, preprocess_quick_test_func:Callable, wandb_method="grid"):
+                         names_dict:dict, metric_goal:dict,
+                         sweep_trainer:Callable, preprocess_quick_test_func:Callable,
+                         SlurmGenerator_cls:Type[SlurmGenerator]=SlurmGenerator, wandb_method="grid"):
     if quick_test:
         print('\nQuick test!')
         config = preprocess_quick_test_func(config=config)
@@ -110,7 +112,8 @@ def run_in_standard_mode(config, train_func:Callable,
         wandb.agent(sweep_id, sweep_trainer, count=None)
     
     else:
+        sync_wandb_filepath = SlurmGenerator_cls.build_sync_wandb_filepath(script_filename=filename, config=config)
         run:Run = single_run(config=config, train_func=train_func, is_offline=is_offline, use_wandb=use_wandb,
-                             SYNC_WANDB_PATH=SYNC_WANDB_PATH, names_dict=names_dict)
+                             sync_wandb_filepath=sync_wandb_filepath, names_dict=names_dict)
         if run is not None:
             run.finish()

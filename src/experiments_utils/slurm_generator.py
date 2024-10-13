@@ -57,6 +57,10 @@ class SlurmGenerator:
 
         assert not "." in self.filename, f'Please provide filename "{self.filename}" without extension.'
         self.slurm_filename = f'{self.filename}_{self.cluster}.sh'
+
+        assert not ('.sh' in self.SYNC_WANDB_PATH)
+        one_config = configs_list[0]
+        self.sync_wandb_filepath = self.build_sync_wandb_filepath(script_filename=self.filename, config=one_config)
         
         self.num_configs = len(self.configs_list)
 
@@ -70,6 +74,16 @@ class SlurmGenerator:
             self.check_ruch_attr()
         else:
             raise ValueError(f'Cluster name "{self.cluster}" not supported.')
+    
+
+    @classmethod
+    def build_sync_wandb_filepath(cls, script_filename:str, config:dict):
+        assert cls.SYNC_WANDB_PATH is not None
+        assert isinstance(config, dict)
+        exp_name = config['exp_name'] if 'exp_name' in config.keys() else 'exp'
+        sync_wandb_filename = f'sync_wandb_{script_filename}_{exp_name}.sh'
+        filepath = os.path.join(cls.SYNC_WANDB_PATH, sync_wandb_filename)
+        return filepath
     
 
     def check_class_attr(self):
@@ -213,8 +227,7 @@ class SlurmGenerator:
             
             if verbose >= 1:
                 print(f'Generated "{file_path}".')
-        
-        utils_wandb.initialize_sync_wandb_file(SYNC_WANDB_PATH=self.SYNC_WANDB_PATH)
+        utils_wandb.initialize_sync_wandb_file(sync_wandb_filepath=self.sync_wandb_filepath)
 
 
     def init_log_files(self, verbose=0):

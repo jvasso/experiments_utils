@@ -70,16 +70,16 @@ if __name__=='__main__':
     wandb_names, metric_goal = set_wandb_params(use_wandb=use_wandb)
     names_dict = {**names_dict, **wandb_names} if use_wandb else None
 
+    filename = os.path.basename(__file__)
     if mode=="generate_slurm":
-        filename = os.path.basename(__file__)
-        generate_slurm(cluster_name=cluster_name, filename=filename, SlurmGenerator_cls=CustomSlurmGenerator)
+        generate_slurm(config=config, filename=filename, cluster_name=cluster_name, SlurmGenerator_cls=CustomSlurmGenerator)
     elif mode=="cluster":
-        run_in_cluster_mode(train_func=train_func, CONFIGS_PATH=PathManager.CONFIGS, SYNC_WANDB_PATH=PathManager.SYNC_WANDB, names_dict=names_dict)
+        run_in_cluster_mode(train_func=train_func, filename=filename, CONFIGS_PATH=PathManager.CONFIGS, names_dict=names_dict, SlurmGenerator_cls=CustomSlurmGenerator)
     elif mode=="standard":
-        run_in_standard_mode(config=config, train_func=train_func,
+        run_in_standard_mode(config=config, train_func=train_func, filename=filename,
                              quick_test=quick_test, use_sweep=use_sweep, use_wandb=use_wandb, is_offline=is_offline,
-                             SYNC_WANDB_PATH=PathManager.SYNC_WANDB, names_dict=names_dict, metric_goal=metric_goal,
+                             names_dict=names_dict, metric_goal=metric_goal,
                              sweep_trainer=sweep_trainer, preprocess_quick_test_func=preprocess_quick_test,
-                             wandb_method="grid")
+                             SlurmGenerator_cls=CustomSlurmGenerator, wandb_method="grid")
     else:
         raise ValueError(f'Mode {mode} not supported.')
