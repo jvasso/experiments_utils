@@ -295,5 +295,5 @@ def remove_duplicates(dict_list:List[dict]):
             new_list.append(d)
         else:
             duplicate_count += 1
-    print(f"\nFound duplicates! f{duplicate_count} removed.")
+    print(f"\nFound duplicates! {duplicate_count} removed.")
     return new_list
