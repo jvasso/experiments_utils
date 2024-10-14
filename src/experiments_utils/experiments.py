@@ -67,7 +67,7 @@ def preprocess_training(config, seed, device):
 ####################################################################################################################################
 
 
-def generate_slurm(config, filename:str, cluster_name:str, SlurmGenerator_cls:Type[SlurmGenerator]):
+def generate_slurm(config, filename:str, cluster_name:str, SlurmGenerator_cls:Type[SlurmGenerator], remove_duplicates=True):
     print('\nGenerate slurm!')
     group_name = utils_wandb.generate_group_name(format='format1', cluster_name=cluster_name)
     run_name   = group_name
@@ -76,6 +76,8 @@ def generate_slurm(config, filename:str, cluster_name:str, SlurmGenerator_cls:Ty
     configs_list = utils.dict_of_lists2list_of_dicts(config)
     configs_list_adjusted = [SlurmGenerator_cls.adjust_config_to_constraints(config_element, slurm_kwargs, cluster_name)
                              for config_element in configs_list]
+    if remove_duplicates:
+        configs_list_adjusted = utils.remove_duplicates(dict_list=configs_list_adjusted)
    
     slurm_generator = SlurmGenerator_cls(configs_list=configs_list_adjusted,
                                          filename=filename, run_name=run_name, group_name=group_name,

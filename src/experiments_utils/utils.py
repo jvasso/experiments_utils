@@ -281,3 +281,19 @@ def get_gpu_usage(verbose=True):
     gpu:GPU = GPUtil.getGPUs()[0]
     if verbose: print(f"\nGPU RAM Used: {gpu.memoryUsed}MB (total: {gpu.memoryTotal}MB)")
     return gpu.memoryUsed
+
+
+def remove_duplicates(dict_list:List[dict]):
+    seen = set()
+    new_list = []
+    duplicate_count = 0
+    for d in dict_list:
+        # Create a hashable representation of the dictionary
+        items = tuple(sorted(d.items()))
+        if items not in seen:
+            seen.add(items)
+            new_list.append(d)
+        else:
+            duplicate_count += 1
+    print(f"\nFound duplicates! f{duplicate_count} removed.")
+    return new_list
