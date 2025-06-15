@@ -20,6 +20,7 @@ class SlurmGenerator:
     QOS_T4  = "qos_gpu-t4"
     CLUSTER_JEAN_ZAY = "jz"
     CLUSTER_RUCHE    = "r"
+    CLUSTER_LOCAL    = 'local'
     
     # mandatory attributes
     PROJECT_PATH    = None
@@ -292,6 +293,8 @@ class SlurmGenerator:
             return 'JZ'
         elif cluster_name == SlurmGenerator.CLUSTER_RUCHE:
             return 'R'
+        elif cluster_name == SlurmGenerator.CLUSTER_LOCAL:
+            return 'LOCAL'
         else:
             raise ValueError(f'Cluster name {cluster_name} not supported.')
         
