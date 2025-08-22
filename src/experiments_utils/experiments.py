@@ -4,6 +4,9 @@ from typing import Type, Callable
 from types import SimpleNamespace
 import copy
 
+import cProfile
+import pstats
+
 import random
 import numpy as np
 
@@ -107,7 +110,7 @@ def run_in_standard_mode(config, train_func:Callable, filename:str,
                          names_dict:dict, metric_goal:dict,
                          sweep_trainer:Callable, preprocess_quick_test_func:Callable, check_config_concistency_func:Callable,
                          preprocess_config_func:Callable,
-                         SlurmGenerator_cls:Type[SlurmGenerator]=SlurmGenerator, wandb_method="grid"):
+                         SlurmGenerator_cls:Type[SlurmGenerator]=SlurmGenerator, use_profiler=False, project_root:str=None, wandb_method="grid"):
     if use_sweep: assert use_wandb
     assert not (use_sweep and use_special_non_sweep_mode)
     
@@ -139,12 +142,56 @@ def run_in_standard_mode(config, train_func:Callable, filename:str,
                 run.finish()
         print(f'\n\n### View results at group: {names_dict["group"]}.\n')
     else:
-        config = utils.remove_lists(config)
+        configs_list = utils.dict_of_lists2list_of_dicts(config)
+        config = preprocess_config_func(configs_list[0])
+        # config = utils.remove_lists(config)
         sync_wandb_filepath = SlurmGenerator_cls.build_sync_wandb_filepath(script_filename=filename, config=config)
+        
+        if use_profiler:
+            assert project_root is not None
+            profiler = cProfile.Profile()
+            profiler.enable()
+        
         run:Run = single_run(config=config, train_func=train_func, is_offline=is_offline, use_wandb=use_wandb,
                              sync_wandb_filepath=sync_wandb_filepath, names_dict=names_dict)
+        
+        if use_profiler:
+            profiler.disable()
+            post_process_profiling(profiler=profiler, project_root=project_root)
+
         if run is not None:
             run.finish()
+
+
+
+def post_process_profiling(profiler:cProfile.Profile, project_root:str):
+    if not os.path.exists("profiler"): os.makedirs("profiler")
+    raw_profile_path     = os.path.join("profiler", "profile_output.prof")
+    filtered_output_path = os.path.join("profiler", "filtered_stats.txt")
+    profiler.dump_stats(raw_profile_path)
+    assert project_root is not None
+    with open(filtered_output_path, "w") as f:
+        stats = pstats.Stats(raw_profile_path, stream=f)
+        stats.strip_dirs().sort_stats("cumtime")
+        # stats.print_stats(lambda filename: filename and os.path.abspath(filename).startswith(project_root))
+        
+    # 3. Extract only entries that are truly from your codebase
+    filtered_entries = {
+        func: stat for func, stat in stats.stats.items()
+        if func[0] and os.path.abspath(func[0]).startswith(project_root)
+    }
+
+    # 4. Write filtered entries to file
+    with open(filtered_output_path, "w") as f:
+        f.write(f"{'Function':<70} {'Total time':>10} {'Calls':>10} {'Cumulative':>12}\n")
+        f.write("=" * 100 + "\n")
+
+        for func, stat in sorted(filtered_entries.items(), key=lambda item: item[1][3], reverse=True):
+            filename, lineno, name = func
+            cc, nc, tt, ct, callers = stat
+            f.write(f"{filename}:{lineno} - {name:<50} {tt:10.4f} {nc:10} {ct:12.4f}\n")
+
+
 
 
 def filter_differing_keys(dicts):
